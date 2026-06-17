@@ -1,11 +1,11 @@
 {
   "name": "@wehao/fast-context-mcp",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "AI-driven semantic code search via reverse-engineered Windsurf protocol (Node.js)",
   "type": "module",
   "main": "src/server.mjs",
   "bin": {
-    "fast-context-mcp": "src/server.mjs"
+    "fast-context-mcp": "./src/server.mjs"
   },
   "files": [
     "src/",
