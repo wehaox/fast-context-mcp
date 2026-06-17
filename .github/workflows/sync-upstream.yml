@@ -15,9 +15,14 @@ jobs:
 
     steps:
       - name: Checkout fork
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
 
       - name: Configure git
         run: |
@@ -46,13 +51,15 @@ jobs:
       - name: Create pull request
         env:
           GH_TOKEN: ${{ github.token }}
+          PR_BODY: |
+            自动同步上游 `SammySnake-d/fast-context-mcp` 的更新。
+
+            合并前请确认 fork 自定义能力仍然保留：
+            - `WINDSURF_API_KEY_URL` 启动取 key
+            - npm 包名 `@wehao/fast-context-mcp`
         run: |
           gh pr view sync-upstream --json number >/dev/null 2>&1 || gh pr create \
             --base main \
             --head sync-upstream \
             --title "chore: sync upstream" \
-            --body "自动同步上游 \`SammySnake-d/fast-context-mcp\` 的更新。
-
-合并前请确认 fork 自定义能力仍然保留：
-- \`WINDSURF_API_KEY_URL\` 启动取 key
-- npm 包名 \`@wehao/fast-context-mcp\`"
+            --body "$PR_BODY"
