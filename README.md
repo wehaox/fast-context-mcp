@@ -47,16 +47,16 @@ No need to install ripgrep — it's bundled via `@vscode/ripgrep`.
 
 ```bash
 # Latest stable release
-npm install @sammysnake/fast-context-mcp
+npm install @wehao/fast-context-mcp
 
 # Or beta/next release
-npm install @sammysnake/fast-context-mcp@next
+npm install @wehao/fast-context-mcp@next
 ```
 
 ### Option 2: From Source
 
 ```bash
-git clone https://github.com/SammySnake-d/fast-context-mcp.git
+git clone https://github.com/wehaox/fast-context-mcp.git
 cd fast-context-mcp
 npm install
 ```
@@ -65,7 +65,7 @@ npm install
 
 ### 1. Get Your Windsurf API Key
 
-The server auto-extracts the API key from your local Windsurf installation. You can also use the `extract_windsurf_key` MCP tool after setup, or set `WINDSURF_API_KEY` manually.
+The server auto-extracts the API key from your local Windsurf installation. You can also use the `extract_windsurf_key` MCP tool after setup, set `WINDSURF_API_KEY` manually, or set `WINDSURF_API_KEY_URL` to fetch a key from an HTTP endpoint at startup.
 
 Key is stored in Windsurf's local SQLite database:
 
@@ -85,7 +85,7 @@ Add to `~/.claude.json` under `mcpServers`:
 {
   "fast-context": {
     "command": "npx",
-    "args": ["-y", "--prefer-online", "@sammysnake/fast-context-mcp"],
+    "args": ["-y", "--prefer-online", "@wehao/fast-context-mcp"],
     "env": {
       "WINDSURF_API_KEY": "sk-ws-01-xxxxx"
     }
@@ -99,7 +99,7 @@ For beta/next release:
 {
   "fast-context": {
     "command": "npx",
-    "args": ["-y", "--prefer-online", "@sammysnake/fast-context-mcp@next"],
+    "args": ["-y", "--prefer-online", "@wehao/fast-context-mcp@next"],
     "env": {
       "WINDSURF_API_KEY": "sk-ws-01-xxxxx"
     }
@@ -115,7 +115,7 @@ Add to `claude_desktop_config.json` under `mcpServers`:
 {
   "fast-context": {
     "command": "npx",
-    "args": ["-y", "--prefer-online", "@sammysnake/fast-context-mcp"],
+    "args": ["-y", "--prefer-online", "@wehao/fast-context-mcp"],
     "env": {
       "WINDSURF_API_KEY": "sk-ws-01-xxxxx"
     }
@@ -129,7 +129,7 @@ For beta/next release:
 {
   "fast-context": {
     "command": "npx",
-    "args": ["-y", "--prefer-online", "@sammysnake/fast-context-mcp@next"],
+    "args": ["-y", "--prefer-online", "@wehao/fast-context-mcp@next"],
     "env": {
       "WINDSURF_API_KEY": "sk-ws-01-xxxxx"
     }
@@ -138,12 +138,15 @@ For beta/next release:
 ```
 
 > If `WINDSURF_API_KEY` is omitted, the server auto-discovers it from your local Windsurf installation.
+> To fetch a key at startup, set `WINDSURF_API_KEY_URL` to an endpoint. The endpoint must return JSON like `{"status":200,"message":"success","data":{"name":"fast_context","value":"sk-ws-..."}}`; `data.value` is used as the key.
 
 ## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `WINDSURF_API_KEY` | *(auto-discover)* | Windsurf API key |
+| `WINDSURF_API_KEY_URL` | — | Startup key-fetch endpoint; reads key from JSON `data.value` |
+| `FC_KEY_FETCH_TIMEOUT_MS` | `10000` | Timeout for startup key-fetch requests |
 | `FC_MAX_TURNS` | `3` | Search rounds per query (more = deeper but slower) |
 | `FC_MAX_COMMANDS` | `8` | Max parallel commands per round |
 | `FC_TIMEOUT_MS` | `30000` | Connect-Timeout-Ms for streaming requests |

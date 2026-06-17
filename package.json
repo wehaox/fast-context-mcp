@@ -1,5 +1,5 @@
 {
-  "name": "@sammysnake/fast-context-mcp",
+  "name": "@wehao/fast-context-mcp",
   "version": "1.2.1",
   "description": "AI-driven semantic code search via reverse-engineered Windsurf protocol (Node.js)",
   "type": "module",
@@ -13,18 +13,23 @@
     "LICENSE"
   ],
   "scripts": {
-    "start": "node src/server.mjs"
+    "start": "node src/server.mjs",
+    "check": "node --check src/core.mjs && node --check src/server.mjs && node --check src/extract-key.mjs && node --check src/executor.mjs && node --check src/protobuf.mjs",
+    "prepublishOnly": "npm run check"
   },
   "engines": {
     "node": ">=18"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SammySnake-d/fast-context-mcp.git"
+    "url": "git+https://github.com/wehaox/fast-context-mcp.git"
   },
-  "homepage": "https://github.com/SammySnake-d/fast-context-mcp#readme",
+  "homepage": "https://github.com/wehaox/fast-context-mcp#readme",
   "bugs": {
-    "url": "https://github.com/SammySnake-d/fast-context-mcp/issues"
+    "url": "https://github.com/wehaox/fast-context-mcp/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "keywords": [
     "mcp",

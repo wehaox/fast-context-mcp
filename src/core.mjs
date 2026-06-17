@@ -359,6 +359,111 @@ function getToolDefinitions(maxCommands = 8) {
 
 // ─── Credentials ───────────────────────────────────────────
 
+/** @type {Promise<string|null>|null} */
+let _remoteApiKeyPromise = null;
+
+/**
+ * Check whether a value is an HTTP(S) URL.
+ * @param {string} value
+ * @returns {boolean}
+ */
+function _isHttpUrl(value) {
+  return /^https?:\/\//i.test(value.trim());
+}
+
+/**
+ * Read a timeout env var with optional clamping.
+ * @param {string} name
+ * @param {number} defaultValue
+ * @param {{ min?: number, max?: number }} [opts]
+ * @returns {number}
+ */
+function _readIntEnv(name, defaultValue, opts = {}) {
+  const parsed = Number.parseInt(process.env[name] ?? "", 10);
+  if (!Number.isFinite(parsed)) return defaultValue;
+  const min = typeof opts.min === "number" ? opts.min : null;
+  const max = typeof opts.max === "number" ? opts.max : null;
+  let value = parsed;
+  if (min !== null) value = Math.max(min, value);
+  if (max !== null) value = Math.min(max, value);
+  return value;
+}
+
+/**
+ * Get the configured API key endpoint URL, if any.
+ * @returns {string|null}
+ */
+function _getApiKeyUrl() {
+  return process.env.WINDSURF_API_KEY_URL?.trim() || null;
+}
+
+/**
+ * Fetch Windsurf API key from a configured options endpoint.
+ * Expected response: { status: 200, message: "success", data: { name: "fast_context", value: "..." } }
+ * @param {string} url
+ * @returns {Promise<string>}
+ */
+async function _fetchApiKeyFromUrl(url) {
+  if (!_isHttpUrl(url)) {
+    throw new Error(`Invalid API key URL: ${url}`);
+  }
+
+  const timeoutMs = _readIntEnv("FC_KEY_FETCH_TIMEOUT_MS", 10000, { min: 1000, max: 60000 });
+  const resp = await fetch(url, {
+    method: "GET",
+    headers: { "Accept": "application/json" },
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+
+  if (!resp.ok) {
+    throw new Error(`API key endpoint request failed: HTTP ${resp.status}`);
+  }
+
+  let payload;
+  try {
+    payload = await resp.json();
+  } catch (e) {
+    throw new Error(`API key endpoint returned invalid JSON: ${e.message}`);
+  }
+
+  if (payload?.status !== undefined && payload.status !== 200) {
+    throw new Error(`API key endpoint returned status ${payload.status}: ${payload.message || "unknown error"}`);
+  }
+
+  const value = payload?.data?.value;
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error("API key endpoint response missing data.value");
+  }
+
+  return value.trim();
+}
+
+/**
+ * Fetch and cache API key from configured URL.
+ * @returns {Promise<string|null>}
+ */
+async function getRemoteApiKey() {
+  const url = _getApiKeyUrl();
+  if (!url) return null;
+
+  if (!_remoteApiKeyPromise) {
+    _remoteApiKeyPromise = _fetchApiKeyFromUrl(url);
+  }
+
+  const key = await _remoteApiKeyPromise;
+  process.env.WINDSURF_API_KEY = key;
+  return key;
+}
+
+/**
+ * Warm up configured remote API key at server startup.
+ * No-op when no API key URL is configured.
+ * @returns {Promise<string|null>}
+ */
+export async function initializeConfiguredApiKey() {
+  return getRemoteApiKey();
+}
+
 /**
  * Auto-discover Windsurf API key from local installation.
  * @returns {Promise<string|null>}
@@ -380,8 +485,10 @@ async function autoDiscoverApiKey() {
  * @returns {Promise<string>}
  */
 async function getApiKey() {
-  const key = process.env.WINDSURF_API_KEY;
+  const key = process.env.WINDSURF_API_KEY?.trim();
   if (key) return key;
+  const remote = await getRemoteApiKey();
+  if (remote) return remote;
   const discovered = await autoDiscoverApiKey();
   if (discovered) return discovered;
   throw new Error(

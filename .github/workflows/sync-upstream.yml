@@ -1,0 +1,58 @@
+name: Sync upstream
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/SammySnake-d/fast-context-mcp.git || true
+          git fetch upstream main
+
+      - name: Merge upstream into sync branch
+        run: |
+          git checkout -B sync-upstream origin/main
+          git merge upstream/main --no-edit
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate
+        run: npm run check
+
+      - name: Push sync branch
+        run: git push origin sync-upstream --force-with-lease
+
+      - name: Create pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr view sync-upstream --json number >/dev/null 2>&1 || gh pr create \
+            --base main \
+            --head sync-upstream \
+            --title "chore: sync upstream" \
+            --body "自动同步上游 \`SammySnake-d/fast-context-mcp\` 的更新。
+
+合并前请确认 fork 自定义能力仍然保留：
+- \`WINDSURF_API_KEY_URL\` 启动取 key
+- npm 包名 \`@wehao/fast-context-mcp\`"

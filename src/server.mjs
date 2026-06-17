@@ -6,6 +6,7 @@
  *
  * Configuration (environment variables):
  *   WINDSURF_API_KEY     — Windsurf API key (auto-discovered from local install if not set)
+ *   WINDSURF_API_KEY_URL — URL returning { data: { value: "..." } } for startup key fetching
  *   FC_MAX_TURNS         — Search rounds per query (default: 3)
  *   FC_MAX_COMMANDS      — Max parallel commands per round (default: 8)
  *   FC_TIMEOUT_MS        — Connect-Timeout-Ms for streaming requests (default: 30000)
@@ -18,7 +19,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
-import { searchWithContent, extractKeyInfo } from "./core.mjs";
+import { searchWithContent, extractKeyInfo, initializeConfiguredApiKey } from "./core.mjs";
 
 /**
  * Parse an integer env var with optional clamping.
@@ -200,6 +201,7 @@ server.tool(
 // ─── Start ─────────────────────────────────────────────────
 
 async function main() {
+  await initializeConfiguredApiKey();
   const transport = new StdioServerTransport();
   await server.connect(transport);
 }
