@@ -201,9 +201,12 @@ server.tool(
 // ─── Start ─────────────────────────────────────────────────
 
 async function main() {
-  await initializeConfiguredApiKey();
   const transport = new StdioServerTransport();
   await server.connect(transport);
+
+  initializeConfiguredApiKey().catch((err) => {
+    process.stderr.write(`[fast-context] WARN: failed to prefetch API key: ${err.message}\n`);
+  });
 }
 
 main().catch((err) => {

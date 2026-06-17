@@ -146,7 +146,7 @@ For beta/next release:
 |----------|---------|-------------|
 | `WINDSURF_API_KEY` | *(auto-discover)* | Windsurf API key |
 | `WINDSURF_API_KEY_URL` | — | Startup key-fetch endpoint; reads key from JSON `data.value` |
-| `FC_KEY_FETCH_TIMEOUT_MS` | `10000` | Timeout for startup key-fetch requests |
+| `FC_KEY_FETCH_TIMEOUT_MS` | `5000` | Timeout for key-fetch requests |
 | `FC_MAX_TURNS` | `3` | Search rounds per query (more = deeper but slower) |
 | `FC_MAX_COMMANDS` | `8` | Max parallel commands per round |
 | `FC_TIMEOUT_MS` | `30000` | Connect-Timeout-Ms for streaming requests |

@@ -408,7 +408,7 @@ async function _fetchApiKeyFromUrl(url) {
     throw new Error(`Invalid API key URL: ${url}`);
   }
 
-  const timeoutMs = _readIntEnv("FC_KEY_FETCH_TIMEOUT_MS", 10000, { min: 1000, max: 60000 });
+  const timeoutMs = _readIntEnv("FC_KEY_FETCH_TIMEOUT_MS", 5000, { min: 1000, max: 60000 });
   const resp = await fetch(url, {
     method: "GET",
     headers: { "Accept": "application/json" },
@@ -447,7 +447,10 @@ async function getRemoteApiKey() {
   if (!url) return null;
 
   if (!_remoteApiKeyPromise) {
-    _remoteApiKeyPromise = _fetchApiKeyFromUrl(url);
+    _remoteApiKeyPromise = _fetchApiKeyFromUrl(url).catch((e) => {
+      _remoteApiKeyPromise = null;
+      throw e;
+    });
   }
 
   const key = await _remoteApiKeyPromise;
@@ -456,7 +459,7 @@ async function getRemoteApiKey() {
 }
 
 /**
- * Warm up configured remote API key at server startup.
+ * Warm up configured remote API key.
  * No-op when no API key URL is configured.
  * @returns {Promise<string|null>}
  */
